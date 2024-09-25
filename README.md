@@ -96,7 +96,7 @@ Tabla FLIGHTS_202301
 [Gestión de datos fuera del alcance del análisis y datos inconsistentes en variables categóricas](https://github.com/lornarr/proyecto-4-vuelos/blob/main/1.%20Procesamiento%20y%20preparaci%C3%B3n%20de%20datos/3.%20Gesti%C3%B3n%20datos%20fuera%20del%20alcance%20de%20an%C3%A1lisis%20e%20inconsistentes.md)<br>
 [Unión tablas](https://github.com/lornarr/proyecto-4-vuelos/blob/main/1.%20Procesamiento%20y%20preparaci%C3%B3n%20de%20datos/4.%20Uni%C3%B3n%20tablas.md)<br>
 [Creación de nuevas variables](https://github.com/lornarr/proyecto-4-vuelos/blob/main/1.%20Procesamiento%20y%20preparaci%C3%B3n%20de%20datos/5.%20Creaci%C3%B3n%20nuevas%20variables.md)<br>
-[Identificación de nuevos datos atípicos y nulo](https://github.com/lornarr/proyecto-4-vuelos/blob/main/1.%20Procesamiento%20y%20preparaci%C3%B3n%20de%20datos/5.%20Identificaci%C3%B3n%20nuevos%20datos%20at%C3%ADpicos%20y%20nulos.md)s<br>
+[Identificación de nuevos datos atípicos y nulos](https://github.com/lornarr/proyecto-4-vuelos/blob/main/1.%20Procesamiento%20y%20preparaci%C3%B3n%20de%20datos/5.%20Identificaci%C3%B3n%20nuevos%20datos%20at%C3%ADpicos%20y%20nulos.md)<br>
 
 ## 2. Análisis Exploratorio de Datos
 
