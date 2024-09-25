@@ -5,11 +5,9 @@ Septiembre 2024
 
 ## Enlaces
 
-Bitácora [enlace](https://docs.google.com/document/d/1J828SucRgOCuxv2QmOCihrxq2Bi-esE6-VxK_k5gfVY/edit?usp=sharing)<br>
-Dashboard Looker Studio [enlace](https://www.google.com/url?q=https://lookerstudio.google.com/reporting/7893ce7d-40d0-4d16-ba5c-b9275a236f84/page/p_778ch8jqkd/edit&sa=D&source=docs&ust=1726039376046579&usg=AOvVaw2UbAPXp76nCRbfaiSDrke_)<br>
-Presentación Google Slides [enlace](https://docs.google.com/presentation/d/12t9HLwdpcGI9iS5REN3a3Jl1W4Mq9BRH36wTNguW90U/edit#slide=id.p)<br>
-Proyecto BigQuery [enlace](https://console.cloud.google.com/bigquery?hl=es&project=proyecto-4-435418&ws=!1m4!1m3!3m2!1sproyecto-4-435418!2svuelos)<br>
-Tablas riesgo relativo y Correlación Pearson Google Sheets [enlace](https://docs.google.com/spreadsheets/d/1yO1KKRCYZarm0-nQO-KPxt-DyzyhTuElycjvfub4cMs/edit?usp=sharing)<br>
+[Bitácora](https://docs.google.com/document/d/1J828SucRgOCuxv2QmOCihrxq2Bi-esE6-VxK_k5gfVY/edit?usp=sharing)<br>
+[Dashboard](https://www.google.com/url?q=https://lookerstudio.google.com/reporting/7893ce7d-40d0-4d16-ba5c-b9275a236f84/page/p_778ch8jqkd/edit&sa=D&source=docs&ust=1726039376046579&usg=AOvVaw2UbAPXp76nCRbfaiSDrke_)<br>
+[Presentación](https://docs.google.com/presentation/d/12t9HLwdpcGI9iS5REN3a3Jl1W4Mq9BRH36wTNguW90U/edit#slide=id.p)<br>
 
 ## Contexto
 
@@ -28,7 +26,7 @@ SQL y Pyhton.
 ## Metodología
 
 - Preparación base de datos: Limpieza, creación de nuevas variables y unión de tablas.
-- Técnicas de análisis utilizadas: Segmentación de aeropuertos, distancias, retrasos, entre otros. Medidas estadísticas como Correlación de Pearson y desviación estándar. Cálculo de riesgo relativo de variables para descubrir patrones y tendencias. Gráficas como scatter plots, histogramas y box plots. 
+- Técnicas de análisis utilizadas: Segmentación de aeropuertos, distancias, retrasos, entre otros. Medidas estadísticas como Correlación de Pearson y desviación estándar. Cálculo de riesgo relativo de variables para descubrir patrones y tendencias. Gráficas como scatter plots, histogramas y box plots.
 - Responder preguntas: Entender los resultados del cálculo de riesgo relativo y las estadísticas para esclarecer las preguntas formuladas.
 - Descubrimiento de información oculta en los datos: Explorar y analizar los datos para encontrar información adicional que pueda influir en la toma de decisiones y con ello desarrollar estrategias.
 
@@ -37,8 +35,8 @@ SQL y Pyhton.
 Algunos de los planteamientos guía para el análisis fueron las siguientes:
 
 - ¿Existen patrones frecuentes en relación a cancelaciones, retrasos y desvíos de vuelos? Por ejemplo, rutas, aeropuertos de origen o destino y horarios.
-- ¿Cuál es el tiempo promedio de retraso? 
-- ¿Es posible identificar el principal motivo de retraso y cancelación? 
+- ¿Cuál es el tiempo promedio de retraso?
+- ¿Es posible identificar el principal motivo de retraso y cancelación?
 - ¿Qué aerolíneas registran más incidentes de cada tipo?
 - ¿Hay una relación entre la distancia de vuelo y la probabilidad de incidentes?
 - ¿Los aeropuertos más grandes tienen más retrasos comparados con aeropuertos más pequeños?
@@ -59,9 +57,9 @@ Tabla FLIGHTS_202301
 - FL_DATE: fecha de vuelo (yyyymmdd).
 -AIRLINE_CODE: código de operador único.
 - DOT_CODE: número de identificación asignado por el DOT de EE. UU. para identificar una aerolínea única.
-- FL_NUMBER: número de vuelo. 
-- ORIGIN: aeropuerto de origen. 
-- ORIGIN_CITY: aeropuerto de origen, nombre de la ciudad. 
+- FL_NUMBER: número de vuelo.
+- ORIGIN: aeropuerto de origen.
+- ORIGIN_CITY: aeropuerto de origen, nombre de la ciudad.
 - DEST: aeropuerto de destino.
 - DEST_CITY: aeropuerto de destino, nombre de la ciudad.
 - CRS_DEP_TIME: hora local de salida (hhmm) registrada CRS (Sistema de control de reservas).
@@ -69,13 +67,13 @@ Tabla FLIGHTS_202301
 - DEP_DELAY: diferencia en minutos entre la hora de salida prevista y la real.
 - TAXI_OUT: tiempo de taxi en la salida en minutos.
 - WHEELS_OFF: hora exacta de despegue (hora local: hhmm).
-- WHEELS_ON: hora exacta de aterrizaje (hora local: hhmm). 
+- WHEELS_ON: hora exacta de aterrizaje (hora local: hhmm).
 - TAXI_IN: tiempo de taxi en la llegada en minutos.
 - CRS_ARR_TIME: hora local de llegada registrada en CRS (hhmm).
 - ARR_TIME: hora local de llegada real (hhmm).
 - ARR_DELAY: diferencia en minutos entre la hora de llegada prevista y la real.
 - CANCELLED: indicador de vuelo cancelado.
-- CANCELLATION_CODE: motivo de la cancelación. 
+- CANCELLATION_CODE: motivo de la cancelación.
 - DIVERTED: indicador de vuelo desviado.
 - CRS_ELAPSED_TIME: tiempo total de vuelo transcurrido en minutos registrado en CRS.
 - ELAPSED_TIME: tiempo total de vuelo transcurrido en minutos real.
@@ -137,7 +135,7 @@ Aplicación del modelo de riesgo relativo
 
 - Para cancelaciones de vuelos, cobran más relevancia las rutas. Hay 5 rutas con riesgo relativo de 52.35: BWI - ABQ, CNY - SLC, DEN - GRB, FSD - SNA, GRB - DEN y SNA - FSD.
 - El motivo de cancelación de vuelos más recurrente es por condiciones meteorológicas, por un amplio margen de diferencia (64,2%). Los retrasos por motivo de seguridad son la causa con menor incidencia, de apenas un 1,8%.
-- La costa central tiene alta concentración de viajes cancelados, mayoritariamente por causas metereológicas en franja horaria nocturna, de 20:00 a 00:00 horas. 
+- La costa central tiene alta concentración de viajes cancelados, mayoritariamente por causas metereológicas en franja horaria nocturna, de 20:00 a 00:00 horas.
 - Martes y miércoles son los días que más cancelaciones se registran.
 - Los aeropuertos de origen con mayor riesgo de cancelación de vuelos son COD / Cody (17.45), ADK / Adak Island (13.09), VEL / Vernal (10.27), DVL / Devils Lake (9.35) y ASE / Aspen (8.91).
 - Las aerolíneas con riesgo de cancelación positivo son, de mayor a menor, SkyWest Airlines Inc. (1.88), Frontier Airlines Inc. (1.76), Southwest Airlines Co. (1.74), Envoy Air (1.36) y Spirit Air Lines (1.22).
@@ -157,12 +155,5 @@ Aplicación del modelo de riesgo relativo
 - Se sugiere indagar respecto a las aerolíneas que más problemas asociados tienen: SkyWest Airlines Inc., Frontier Airlines Inc., Southwest Airlines Co., Spirit Air Lines y Allegiant Air.
 - Investigar por qué Spirit Air Lines es la que más retrasos por NAS y por seguridad tiene y cuáles son los problemas asociados.
 - Aumentar cantidad de pistas en aeropuertos grandes con menos de 4 pistas, ya que los incidentes suelen estar asociados a aeropuertos de mucho flujo.
-- Considerando que las rutas cobran especial relevancia en cuanto a desvíos y cancelaciones, sobre todo en desvíos, indagar respecto a qué incidentes suelen presentar. 
-- Dado que el dataset es solo de enero 2023, se sugiere armar una muestra de datos más significativa, es decir, más prolongada en el tiempo (meses y años), que considere distintas estaciones del año y temporadas (alta y baja demanda). 
-
-
-
-
-
-
-
+- Considerando que las rutas cobran especial relevancia en cuanto a desvíos y cancelaciones, sobre todo en desvíos, indagar respecto a qué incidentes suelen presentar.
+- Dado que el dataset es solo de enero 2023, se sugiere armar una muestra de datos más significativa, es decir, más prolongada en el tiempo (meses y años), que considere distintas estaciones del año y temporadas (alta y baja demanda).
