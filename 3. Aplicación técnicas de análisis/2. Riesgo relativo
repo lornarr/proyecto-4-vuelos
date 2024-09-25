@@ -1,0 +1,668 @@
+## Cálculo de riesgo relativo
+
+[Tablas resumen riesgos relativos](https://docs.google.com/spreadsheets/d/1yO1KKRCYZarm0-nQO-KPxt-DyzyhTuElycjvfub4cMs/edit?gid=1494854816#gid=1494854816)
+
+## Cancelación vuelos
+
+Aerolíneas con mayor riesgo de cancelación de vuelos
+
+| Aerolínea                    | Valor |
+|------------------------------|-------|
+| SkyWest Airlines Inc.         | 1.88  |
+| Frontier Airlines Inc.        | 1.76  |
+| Southwest Airlines Co.        | 1.74  |
+| Envoy Air                    | 1.36  |
+| Spirit Air Lines              | 1.22  |
+| American Airlines Inc.        | 0.99  |
+| PSA Airlines Inc.             | 0.84  |
+| Republic Airline              | 0.82  |
+| Endeavor Air Inc.             | 0.76  |
+| Alaska Airlines Inc.          | 0.73  |
+
+
+Rutas con mayor riesgo de cancelación de vuelos 
+
+| Origen, Destino | Valor |
+|-----------------|-------|
+| BWI, ABQ        | 52.34 |
+| CNY, SLC        | 52.34 |
+| DEN, GRB        | 52.34 |
+| FSD, SNA        | 52.34 |
+| GRB, DEN        | 52.34 |
+| SNA, FSD        | 52.34 |
+| COD, DEN        | 17.45 |
+| DEN, COD        | 17.45 |
+| ASE, PHX        | 13.52 |
+| ADK, ANC        | 13.09 |
+
+
+Aeropuertos de origen con mayor riesgo de cancelación de vuelos 
+
+| Código | Valor |
+|--------|-------|
+| COD    | 17.45 |
+| ADK    | 13.09 |
+| VEL    | 10.27 |
+| DVL    | 9.35  |
+| ASE    | 8.91  |
+| LBF    | 8.84  |
+| XWA    | 8.33  |
+| CNY    | 8.18  |
+| CMX    | 7.73  |
+| CYS    | 6.87  |
+
+
+Aeropuertos de destino con mayor riesgo de cancelación de vuelos
+
+| Código | Valor |
+|--------|-------|
+| COD    | 17.45 |
+| ADK    | 13.09 |
+| VEL    | 11.30 |
+| DVL    | 7.48  |
+| JMS    | 7.48  |
+| XWA    | 7.35  |
+| LAR    | 6.92  |
+| LBF    | 6.31  |
+| PVU    | 6.24  |
+| GUC    | 6.13  |
+
+
+*Riesgo relativo aerolíneas*
+
+```sql
+-- Calcular cantidad de vuelos cancelados y no cancelados por airline_description
+WITH airline_counts AS (
+SELECT
+  airline_description,
+  COUNTIF(cancelled = 1) AS total_cancelled,
+  COUNTIF(cancelled = 0) AS total_not_cancelled
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY airline_description
+),
+
+-- Calcular los totales combinados de todas las aerolíneas excepto la actual
+combined_airlines AS (
+SELECT
+ airline_description,
+ total_cancelled,
+ total_not_cancelled,
+ -- Calcular totales para el resto de aerolíneas
+ (SELECT SUM(total_cancelled) FROM airline_counts) - total_cancelled AS other_airlines_cancelled,
+ (SELECT SUM(total_not_cancelled) FROM airline_counts) - total_not_cancelled AS other_airlines_not_cancelled
+FROM airline_counts
+)
+
+-- Calcular el riesgo relativo comparando aerolíneas
+SELECT
+ ac.airline_description,
+ ac.total_cancelled AS airline_cancelled,
+ ac.total_not_cancelled AS airline_not_cancelled,
+ ac.other_airlines_cancelled,
+ ac.other_airlines_not_cancelled,
+ -- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+ SAFE_DIVIDE(ac.total_cancelled, (ac.total_cancelled + ac.total_not_cancelled)) /
+ SAFE_DIVIDE(ac.other_airlines_cancelled, (ac.other_airlines_cancelled + ac.other_airlines_not_cancelled)) AS relative_risk
+FROM combined_airlines ac
+```
+
+*Riesgo relativo aeropuertos origen*
+
+```sql
+-- Calcular cantidad de vuelos cancelados y no cancelados por origen
+WITH origin_counts AS (
+SELECT
+  origin,
+  COUNTIF(cancelled = 1) AS total_cancelled,
+  COUNTIF(cancelled = 0) AS total_not_cancelled
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY origin
+),
+
+-- Calcular los totales combinados de todos los orígenes excepto el actual
+combined_origins AS (
+SELECT
+ origin,
+ total_cancelled,
+ total_not_cancelled,
+ -- Calcular totales para el resto de los orígenes
+ (SELECT SUM(total_cancelled) FROM origin_counts) - total_cancelled AS other_origins_cancelled,
+ (SELECT SUM(total_not_cancelled) FROM origin_counts) - total_not_cancelled AS other_origins_not_cancelled
+FROM origin_counts
+)
+
+-- Calcular el riesgo relativo comparando orígenes y unir con clasificación de aeropuertos
+SELECT
+ co.origin,
+ ac.coast,
+ co.total_cancelled AS origin_cancelled,
+ co.total_not_cancelled AS origin_not_cancelled,
+ co.other_origins_cancelled,
+ co.other_origins_not_cancelled,
+ -- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+ SAFE_DIVIDE(co.total_cancelled, (co.total_cancelled + co.total_not_cancelled)) /
+ SAFE_DIVIDE(co.other_origins_cancelled, (co.other_origins_cancelled + co.other_origins_not_cancelled)) AS relative_risk
+FROM combined_origins co
+LEFT JOIN `erudite-scholar-426802-h9.proyecto4_flightdelay.airport_classification` AS ac
+ON co.origin = ac.airport
+```
+
+*Riesgo relativo aeropuertos destino*
+
+-- Calcular cantidad de vuelos cancelados y no cancelados por destino
+WITH dest_counts AS (
+SELECT
+  dest,
+  COUNTIF(cancelled = 1) AS total_cancelled,
+  COUNTIF(cancelled = 0) AS total_not_cancelled
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY dest
+),
+
+-- Calcular los totales combinados de todos los destinos excepto el actual
+combined_dest AS (
+SELECT
+ dest,
+ total_cancelled,
+ total_not_cancelled,
+ -- Calcular totales para el resto de los destinos
+ (SELECT SUM(total_cancelled) FROM dest_counts) - total_cancelled AS other_dest_cancelled,
+ (SELECT SUM(total_not_cancelled) FROM dest_counts) - total_not_cancelled AS other_dest_not_cancelled
+FROM dest_counts
+)
+
+-- Calcular el riesgo relativo comparando destinos y unir con clasificación de aeropuertos
+SELECT
+ cd.dest,
+ ac.coast,
+ cd.total_cancelled AS dest_cancelled,
+ cd.total_not_cancelled AS dest_not_cancelled,
+ cd.other_dest_cancelled,
+ cd.other_dest_not_cancelled,
+ -- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+ SAFE_DIVIDE(cd.total_cancelled, (cd.total_cancelled + cd.total_not_cancelled)) /
+ SAFE_DIVIDE(cd.other_dest_cancelled, (cd.other_dest_cancelled + cd.other_dest_not_cancelled)) AS relative_risk
+FROM combined_dest cd
+LEFT JOIN `erudite-scholar-426802-h9.proyecto4_flightdelay.airport_classification` AS ac
+ON cd.dest = ac.airport
+```
+
+Riesgo relativo rutas
+
+```sql
+-- Calcular cantidad de vuelos cancelados y no cancelados por ruta
+WITH route_counts AS (
+SELECT
+ route,
+ COUNTIF(cancelled = 1) AS total_cancelled,
+ COUNTIF(cancelled = 0) AS total_not_cancelled
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY route
+),
+
+-- Calcular los totales combinados de todas las rutas excepto la actual
+combined_routes AS (
+SELECT
+ route,
+ total_cancelled,
+ total_not_cancelled,
+ -- Calcular totales para el resto de las rutas
+ (SELECT SUM(total_cancelled) FROM route_counts) - total_cancelled AS other_routes_cancelled,
+ (SELECT SUM(total_not_cancelled) FROM route_counts) - total_not_cancelled AS other_routes_not_cancelled
+FROM route_counts
+)
+
+-- Calcular el riesgo relativo comparando rutas
+SELECT
+ cr.route,
+ cr.total_cancelled AS route_cancelled,
+ cr.total_not_cancelled AS route_not_cancelled,
+ cr.other_routes_cancelled,
+ cr.other_routes_not_cancelled,
+ -- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+ SAFE_DIVIDE(cr.total_cancelled, (cr.total_cancelled + cr.total_not_cancelled)) /
+ SAFE_DIVIDE(cr.other_routes_cancelled, (cr.other_routes_cancelled + cr.other_routes_not_cancelled)) AS relative_risk
+FROM combined_routes cr
+```
+
+## Retraso vuelos
+
+Aerolíneas con mayor riesgo de retraso de vuelos
+
+| Aerolínea                  | Valor |
+|----------------------------|-------|
+| Spirit Air Lines            | 1.37  |
+| Allegiant Air               | 1.24  |
+| United Air Lines Inc.       | 1.07  |
+| Southwest Airlines Co.      | 1.07  |
+| Delta Air Lines Inc.        | 0.96  |
+| American Airlines Inc.      | 0.95  |
+| Alaska Airlines Inc.        | 0.89  |
+| SkyWest Airlines Inc.       | 0.89  |
+| Endeavor Air Inc.           | 0.87  |
+| Envoy Air                   | 0.84  |
+
+Rutas con mayor riesgo de retraso de vuelos
+
+| Origen, Destino | Valor |
+|-----------------|-------|
+| EWR, OAK    	| 4.82  |
+| IAH, BTR    	| 4.82  |
+| DFW, EUG    	| 4.82  |
+| FLL, ORF    	| 4.82  |
+| JAX, LAX    	| 4.82  |
+| LAX, BUF    	| 4.82  |
+| LAX, JAX    	| 4.82  |
+| ORF, FLL    	| 4.82  |
+| ALB, DEN    	| 4.82  |
+| AUS, SDF    	| 4.82  |
+
+Aeropuertos de origen con mayor riesgo de retraso de vuelos
+
+| Código | Valor |
+|--------|-------|
+| PPG	| 2.63  |
+| OWB	| 2.14  |
+| JAC	| 2.11  |
+| LNK	| 2.07  |
+| PSM	| 2.03  |
+| CKB	| 1.93  |
+| BQN	| 1.91  |
+| PBG	| 1.88  |
+| OTH	| 1.88  |
+| SWF	| 1.81  |
+
+Aeropuertos de destino con mayor riesgo de retraso de vuelos
+
+| Código | Valor |
+|--------|-------|
+| PPG    | 2.63  |
+| FNT    | 2.11  |
+| LBE    | 2.02  |
+| PVU    | 1.95  |
+| OTH    | 1.88  |
+| TTN    | 1.72  |
+| BQN    | 1.72  |
+| PSE    | 1.71  |
+| PGD    | 1.61  |
+| BIH    | 1.61  |
+
+
+*Riesgo relativo aerolíneas*
+
+```sql
+-- Calcular cantidad de vuelos retrasados y no retrasados por airline_description
+WITH airline_counts AS (
+SELECT
+ airline_description,
+ COUNTIF(delay = 1) AS total_delayed,
+ COUNTIF(delay = 0) AS total_not_delayed
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY airline_description
+),
+
+-- Calcular los totales combinados de todas las aerolíneas excepto la actual
+combined_airlines AS (
+SELECT
+ airline_description,
+ total_delayed,
+ total_not_delayed,
+ -- Calcular totales para el resto de las aerolíneas
+ (SELECT SUM(total_delayed) FROM airline_counts) - total_delayed AS other_airlines_delayed,
+ (SELECT SUM(total_not_delayed) FROM airline_counts) - total_not_delayed AS other_airlines_not_delayed
+FROM airline_counts
+)
+
+-- Calcular el riesgo relativo comparando aerolíneas
+SELECT
+ ac.airline_description,
+ ac.total_delayed AS airline_delayed,
+ ac.total_not_delayed AS airline_not_delayed,
+ ac.other_airlines_delayed,
+ ac.other_airlines_not_delayed,
+ -- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+ SAFE_DIVIDE(ac.total_delayed, (ac.total_delayed + ac.total_not_delayed)) /
+ SAFE_DIVIDE(ac.other_airlines_delayed, (ac.other_airlines_delayed + ac.other_airlines_not_delayed)) AS relative_risk
+FROM combined_airlines ac
+```
+
+*Riesgo relativo aeropuertos origen*
+
+```sql
+-- Calcular cantidad de vuelos retrasados y no retrasados por origen
+WITH origin_counts AS (
+SELECT
+ origin,
+ COUNTIF(delay = 1) AS total_delayed,
+ COUNTIF(delay = 0) AS total_not_delayed
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY origin
+),
+
+-- Calcular los totales combinados de todos los orígenes excepto el actual
+combined_origins AS (
+SELECT
+ origin,
+ total_delayed,
+ total_not_delayed,
+ -- Calcular totales para el resto de los orígenes
+ (SELECT SUM(total_delayed) FROM origin_counts) - total_delayed AS other_origins_delayed,
+ (SELECT SUM(total_not_delayed) FROM origin_counts) - total_not_delayed AS other_origins_not_delayed
+FROM origin_counts
+)
+
+-- Calcular el riesgo relativo comparando orígenes y unir con clasificación de aeropuertos
+SELECT
+co.origin,
+ac.coast,
+co.total_delayed AS origin_delayed,
+co.total_not_delayed AS origin_not_delayed,
+co.other_origins_delayed,
+co.other_origins_not_delayed,
+-- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+SAFE_DIVIDE(co.total_delayed, (co.total_delayed + co.total_not_delayed)) /
+SAFE_DIVIDE(co.other_origins_delayed, (co.other_origins_delayed + co.other_origins_not_delayed)) AS relative_risk
+FROM combined_origins co
+LEFT JOIN `erudite-scholar-426802-h9.proyecto4_flightdelay.airport_classification` AS ac
+ON co.origin = ac.airport
+```
+
+*Riesgo relativo aeropuertos destino*
+
+```sql
+-- Calcular cantidad de vuelos retrasados y no retrasados por destino
+WITH dest_counts AS (
+SELECT
+ dest,
+ COUNTIF(delay = 1) AS total_delayed,
+ COUNTIF(delay = 0) AS total_not_delayed
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY dest
+),
+
+-- Calcular los totales combinados de todos los destinos excepto el actual
+combined_dest AS (
+SELECT
+dest,
+total_delayed,
+total_not_delayed,
+-- Calcular totales para el resto de los destinos
+(SELECT SUM(total_delayed) FROM dest_counts) - total_delayed AS other_dest_delayed,
+(SELECT SUM(total_not_delayed) FROM dest_counts) - total_not_delayed AS other_dest_not_delayed
+FROM dest_counts
+)
+
+-- Calcular el riesgo relativo comparando destinos y unir con clasificación de aeropuertos
+SELECT
+cd.dest,
+ac.coast,
+cd.total_delayed AS dest_delayed,
+cd.total_not_delayed AS dest_not_delayed,
+cd.other_dest_delayed,
+cd.other_dest_not_delayed,
+-- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+SAFE_DIVIDE(cd.total_delayed, (cd.total_delayed + cd.total_not_delayed)) /
+SAFE_DIVIDE(cd.other_dest_delayed, (cd.other_dest_delayed + cd.other_dest_not_delayed)) AS relative_risk
+FROM combined_dest cd
+LEFT JOIN `erudite-scholar-426802-h9.proyecto4_flightdelay.airport_classification` AS ac
+ON cd.dest = ac.airport
+```
+
+*Riesgo relativo rutas*
+
+```sql
+-- Calcular cantidad de vuelos retrasados y no retrasados por ruta
+WITH route_counts AS (
+SELECT
+ route,
+ COUNTIF(delay = 1) AS total_delayed,
+ COUNTIF(delay = 0) AS total_not_delayed
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY route
+),
+
+-- Calcular los totales combinados de todas las rutas excepto la actual
+combined_routes AS (
+SELECT
+ route,
+ total_delayed,
+ total_not_delayed,
+ -- Calcular totales para el resto de las rutas
+ (SELECT SUM(total_delayed) FROM route_counts) - total_delayed AS other_routes_delayed,
+ (SELECT SUM(total_not_delayed) FROM route_counts) - total_not_delayed AS other_routes_not_delayed
+FROM route_counts
+)
+
+-- Calcular el riesgo relativo comparando rutas y unir con clasificación de aeropuertos
+SELECT
+ cr.route,
+ cr.total_delayed AS route_delayed,
+ cr.total_not_delayed AS route_not_delayed,
+ cr.other_routes_delayed,
+ cr.other_routes_not_delayed,
+ -- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+ SAFE_DIVIDE(cr.total_delayed, (cr.total_delayed + cr.total_not_delayed)) /
+ SAFE_DIVIDE(cr.other_routes_delayed, (cr.other_routes_delayed + cr.other_routes_not_delayed)) AS relative_risk
+FROM combined_routes cr
+```
+
+## Desviación vuelos
+
+Aerolíneas con mayor riesgo de desviación de vuelos
+
+| Aerolínea                  | Valor |
+|----------------------------|-------|
+| SkyWest Airlines Inc.      | 2.77  |
+| Alaska Airlines Inc.       | 2.11  |
+| PSA Airlines Inc.          | 1.06  |
+| Allegiant Air              | 1.02  |
+| United Air Lines Inc.      | 0.99  |
+| Endeavor Air Inc.          | 0.95  |
+| Envoy Air                  | 0.89  |
+| Delta Air Lines Inc.       | 0.89  |
+| Southwest Airlines Co.     | 0.65  |
+| American Airlines Inc.     | 0.65  |
+
+ Rutas con mayor riesgo de desviación de vuelos
+
+ | Origen, Destino | Desviación |
+|-----------------|------------|
+| SAN, DSM        | 400.92     |
+| SAN, KOA        | 111.70     |
+| JAC, ATL        | 100.60     |
+| AMA, IAH        | 100.23     |
+| GRR, IAH        | 100.23     |
+| SNA, MDW        | 100.23     |
+| AUS, DSM        | 89.16      |
+| EYW, CVG        | 89.16      |
+| SAN, LIH        | 76.53      |
+| AZA, FWA        | 66.82      |
+
+Aeropuertos de origen con mayor riesgo de desviación
+
+| Aeropuerto | Riesgo de Desviación |
+|------------|-----------------------|
+| CDV        | 20.07                 |
+| SUX        | 19.74                 |
+| YAK        | 13.37                 |
+| WRG        | 13.37                 |
+| ESC        | 13.15                 |
+| SIT        | 13.09                 |
+| LWS        | 12.94                 |
+| RIW        | 12.93                 |
+| JAC        | 10.30                 |
+| EGE        | 10.28                 |
+
+Aeropuertos de destino con mayor riesgo de desviación
+
+| Aeropuerto | Riesgo de Desviación |
+|------------|-----------------------|
+| PSG        | 33.51                 |
+| ASE        | 28.85                 |
+| DVL        | 21.51                 |
+| YAK        | 20.07                 |
+| LBF        | 19.36                 |
+| ADQ        | 15.73                 |
+| MCW        | 15.43                 |
+| PLN        | 15.43                 |
+| XWA        | 15.02                 |
+| SUN        | 14.45                 |
+
+
+*Riesgo relativo aerolíneas*
+
+```sql
+-- Calcular cantidad de vuelos desviados y no desviados por airline_description
+WITH airline_counts AS (
+SELECT
+ airline_description,
+ COUNTIF(diverted = 1) AS total_diverted,
+ COUNTIF(diverted = 0) AS total_not_diverted
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY airline_description
+),
+
+-- Calcular los totales combinados de todas las aerolíneas excepto la actual
+combined_airlines AS (
+SELECT
+airline_description,
+total_diverted,
+total_not_diverted,
+-- Calcular totales para el resto de aerolíneas
+(SELECT SUM(total_diverted) FROM airline_counts) - total_diverted AS other_airlines_diverted,
+(SELECT SUM(total_not_diverted) FROM airline_counts) - total_not_diverted AS other_airlines_not_diverted
+FROM airline_counts
+)
+
+-- Calcular el riesgo relativo comparando aerolíneas
+SELECT
+ac.airline_description,
+ac.total_diverted AS airline_diverted,
+ac.total_not_diverted AS airline_not_diverted,
+ac.other_airlines_diverted,
+ac.other_airlines_not_diverted,
+-- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+SAFE_DIVIDE(ac.total_diverted, (ac.total_diverted + ac.total_not_diverted)) /
+SAFE_DIVIDE(ac.other_airlines_diverted, (ac.other_airlines_diverted + ac.other_airlines_not_diverted)) AS relative_risk
+FROM combined_airlines ac
+```
+
+*Riesgo relativo* aeropuertos origen
+
+```sql
+-- Calcular cantidad de vuelos desviados y no desviados por origen
+WITH origin_counts AS (
+SELECT
+origin,
+COUNTIF(diverted = 1) AS total_diverted,
+COUNTIF(diverted = 0) AS total_not_diverted
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY origin
+),
+
+-- Calcular los totales combinados de todos los orígenes excepto el actual
+combined_origins AS (
+SELECT
+origin,
+total_diverted,
+total_not_diverted,
+-- Calcular totales para el resto de los orígenes
+(SELECT SUM(total_diverted) FROM origin_counts) - total_diverted AS other_origins_diverted,
+(SELECT SUM(total_not_diverted) FROM origin_counts) - total_not_diverted AS other_origins_not_diverted
+FROM origin_counts
+)
+
+-- Calcular el riesgo relativo comparando orígenes y unir con clasificación de aeropuertos
+SELECT
+co.origin,
+ac.coast,
+co.total_diverted AS origin_diverted,
+co.total_not_diverted AS origin_not_diverted,
+co.other_origins_diverted,
+co.other_origins_not_diverted,
+-- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+SAFE_DIVIDE(co.total_diverted, (co.total_diverted + co.total_not_diverted)) /
+SAFE_DIVIDE(co.other_origins_diverted, (co.other_origins_diverted + co.other_origins_not_diverted)) AS relative_risk
+FROM combined_origins co
+LEFT JOIN `erudite-scholar-426802-h9.proyecto4_flightdelay.airport_classification` AS ac
+ON co.origin = ac.airport
+```
+
+*Riesgo relativo aeropuertos destino*
+
+```sql
+-- Calcular cantidad de vuelos desviados y no desviados por destino
+WITH dest_counts AS (
+SELECT
+dest,
+COUNTIF(diverted = 1) AS total_diverted,
+COUNTIF(diverted = 0) AS total_not_diverted
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY dest
+),
+
+-- Calcular los totales combinados de todos los destinos excepto el actual
+combined_dest AS (
+SELECT
+dest,
+total_diverted,
+total_not_diverted,
+-- Calcular totales para el resto de los destinos
+(SELECT SUM(total_diverted) FROM dest_counts) - total_diverted AS other_dest_diverted,
+(SELECT SUM(total_not_diverted) FROM dest_counts) - total_not_diverted AS other_dest_not_diverted
+FROM dest_counts
+)
+
+-- Calcular el riesgo relativo comparando destinos y unir con clasificación de aeropuertos
+SELECT
+cd.dest,
+ac.coast,
+cd.total_diverted AS dest_diverted,
+cd.total_not_diverted AS dest_not_diverted,
+cd.other_dest_diverted,
+cd.other_dest_not_diverted,
+-- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+SAFE_DIVIDE(cd.total_diverted, (cd.total_diverted + cd.total_not_diverted)) /
+SAFE_DIVIDE(cd.other_dest_diverted, (cd.other_dest_diverted + cd.other_dest_not_diverted)) AS relative_risk
+FROM combined_dest cd
+LEFT JOIN `erudite-scholar-426802-h9.proyecto4_flightdelay.airport_classification` AS ac
+ON cd.dest = ac.airport
+```
+
+*Riesgo relativo rutas*
+
+```sql
+-- Calcular cantidad de vuelos desviados y no desviados por ruta
+WITH route_counts AS (
+SELECT
+ route,
+ COUNTIF(diverted = 1) AS total_diverted,
+ COUNTIF(diverted = 0) AS total_not_diverted
+FROM `erudite-scholar-426802-h9.proyecto4_flightdelay.flights_data`
+GROUP BY route
+),
+
+-- Calcular los totales combinados de todas las rutas excepto la actual
+combined_routes AS (
+SELECT
+ route,
+ total_diverted,
+ total_not_diverted,
+ -- Calcular totales para el resto de las rutas
+ (SELECT SUM(total_diverted) FROM route_counts) - total_diverted AS other_routes_diverted,
+ (SELECT SUM(total_not_diverted) FROM route_counts) - total_not_diverted AS other_routes_not_diverted
+FROM route_counts
+)
+
+-- Calcular el riesgo relativo comparando rutas y unir con clasificación de aeropuertos
+SELECT
+ cr.route,
+ cr.total_diverted AS route_diverted,
+ cr.total_not_diverted AS route_not_diverted,
+ cr.other_routes_diverted,
+ cr.other_routes_not_diverted,
+ -- Cálculo del riesgo relativo, usando SAFE_DIVIDE para evitar divisiones por cero
+ SAFE_DIVIDE(cr.total_diverted, (cr.total_diverted + cr.total_not_diverted)) /
+ SAFE_DIVIDE(cr.other_routes_diverted, (cr.other_routes_diverted + cr.other_routes_not_diverted)) AS relative_risk
+FROM combined_routes cr
+```
