@@ -17,7 +17,7 @@ Se analizaron los datos sobre incidentes asociados a los vuelos, para hacer hall
 
 ## Herramientas utilizadas
 
-BigQuery, Google Sheets, Looker Studio y Google Slides.
+BigQuery, Google Colab, Google Sheets, Looker Studio y Google Slides.
 
 ## Lenguajes utilizados
 
