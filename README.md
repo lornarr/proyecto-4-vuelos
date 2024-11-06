@@ -6,7 +6,7 @@ Septiembre 2024
 ## Enlaces
 
 [Bitácora](https://docs.google.com/document/d/1J828SucRgOCuxv2QmOCihrxq2Bi-esE6-VxK_k5gfVY/edit?usp=sharing)<br>
-[Dashboard](https://www.google.com/url?q=https://lookerstudio.google.com/reporting/7893ce7d-40d0-4d16-ba5c-b9275a236f84/page/p_778ch8jqkd/edit&sa=D&source=docs&ust=1726039376046579&usg=AOvVaw2UbAPXp76nCRbfaiSDrke_)<br>
+[Dashboard]([https://www.google.com/url?q=https://lookerstudio.google.com/reporting/7893ce7d-40d0-4d16-ba5c-b9275a236f84/page/p_778ch8jqkd/edit&sa=D&source=docs&ust=1726039376046579&usg=AOvVaw2UbAPXp76nCRbfaiSDrke_](https://drive.google.com/file/d/1BQCOEkquTB-UqVQCvxon6f1ayAlaeEUu/view?usp=sharing)<br>
 [Presentación](https://docs.google.com/presentation/d/12t9HLwdpcGI9iS5REN3a3Jl1W4Mq9BRH36wTNguW90U/edit#slide=id.p)<br>
 
 ## Contexto
